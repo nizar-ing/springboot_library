@@ -2,8 +2,10 @@ package com.nizaring.springbootlibrary.service;
 
 import com.nizaring.springbootlibrary.dao.BookRepository;
 import com.nizaring.springbootlibrary.dao.CheckoutRepository;
+import com.nizaring.springbootlibrary.dao.HistoryRepository;
 import com.nizaring.springbootlibrary.entity.Book;
 import com.nizaring.springbootlibrary.entity.Checkout;
+import com.nizaring.springbootlibrary.entity.History;
 import com.nizaring.springbootlibrary.responsemodels.ShelfCurrentLoansResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +21,16 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Transactional
 public class BookService {
+
     private final BookRepository bookRepository;
     private final CheckoutRepository checkoutRepository;
+    private final HistoryRepository historyRepository;
 
 
-    public BookService(BookRepository bookRepository, CheckoutRepository checkoutRepository) {
+    public BookService(BookRepository bookRepository, CheckoutRepository checkoutRepository, HistoryRepository historyRepository) {
         this.bookRepository = bookRepository;
         this.checkoutRepository = checkoutRepository;
+        this.historyRepository = historyRepository;
     }
 
     public Book checkoutBook(String userEmail, Long bookId) throws Exception {
@@ -86,6 +91,10 @@ public class BookService {
         book.get().setCopiesAvailable(book.get().getCopiesAvailable() + 1);
         bookRepository.save(book.get());
         checkoutRepository.deleteById(validateCheckout.getId());
+        // when we return a book we need to keep trace of our books loan history
+        var history = new History(userEmail, validateCheckout.getCheckoutDate(), validateCheckout.getReturnDate(),
+                book.get().getTitle(), book.get().getAuthor(), book.get().getDescription(), book.get().getImg());
+        historyRepository.save(history);
     }
 
     public void renewLoan(String userEmail, Long bookId) throws Exception {
