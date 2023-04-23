@@ -37,4 +37,11 @@ public class AdminController {
         if(admin == null || !admin.equals("admin")) throw new Exception("Administration role only");
         adminService.postBook(addBookRequest);
     }
+
+    @DeleteMapping("/secure/delete/book")
+    public void deleteBook(@RequestHeader(value = "Authorization") String token, @RequestParam("book_id") Long bookId) throws Exception {
+        String admin = ExtractJWT.payloadJWTExtraction(token, "\"userType\"");
+        if(admin == null || !admin.equals("admin")) throw new Exception("Administration role only");
+        adminService.deleteBook(bookId);
+    }
 }
