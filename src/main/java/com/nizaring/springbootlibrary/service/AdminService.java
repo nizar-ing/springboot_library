@@ -1,6 +1,8 @@
 package com.nizaring.springbootlibrary.service;
 
 import com.nizaring.springbootlibrary.dao.BookRepository;
+import com.nizaring.springbootlibrary.dao.CheckoutRepository;
+import com.nizaring.springbootlibrary.dao.ReviewRepository;
 import com.nizaring.springbootlibrary.entity.Book;
 import com.nizaring.springbootlibrary.requestmodels.AddBookRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +15,15 @@ import java.util.Optional;
 @Transactional
 public class AdminService {
     private BookRepository bookRepository;
+    private CheckoutRepository checkoutRepository;
+    private ReviewRepository reviewRepository;
 
     @Autowired
-    public AdminService(BookRepository bookRepository) {
+    public AdminService(BookRepository bookRepository, CheckoutRepository checkoutRepository, ReviewRepository reviewRepository) {
         this.bookRepository = bookRepository;
+        this.checkoutRepository = checkoutRepository;
+        this.reviewRepository = reviewRepository;
+
     }
 
     public void increaseBookQuantity(Long bookId) throws Exception {
@@ -45,6 +52,14 @@ public class AdminService {
         book.setCategory(addBookRequest.getCategory());
         book.setImg(addBookRequest.getImg());
         bookRepository.save(book);
+    }
+
+    public void deleteBook(Long bookId) throws Exception {
+        Optional<Book> book = bookRepository.findById(bookId);
+        if(!book.isPresent()) throw new Exception("Book not found!");
+        bookRepository.deleteById(book.get().getId());
+        checkoutRepository.deleteAllByBookId(bookId);
+        reviewRepository.deleteAllByBookId(bookId);
     }
 
 }
