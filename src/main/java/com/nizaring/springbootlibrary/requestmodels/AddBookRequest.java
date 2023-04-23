@@ -9,5 +9,5 @@ public class AddBookRequest {
     private String description;
     private int copies;
     private String category;
-    private String image;
+    private String img;
 }
